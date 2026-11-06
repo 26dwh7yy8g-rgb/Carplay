@@ -1,0 +1,6 @@
+build/
+*.class
+.DS_Store
+# Clé de signature : jamais dans le dépôt
+keystore/
+*.jks
