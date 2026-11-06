@@ -4,19 +4,22 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 final class Prefs {
+    /** Fond : pochette en cours (sinon ma photo, sinon noir) / toujours ma photo / toujours noir. */
+    static final int BG_AUTO = 0, BG_PHOTO = 1, BG_BLACK = 2;
+
     private Prefs() {}
 
     private static SharedPreferences p(Context c) {
         return c.getSharedPreferences("verre", Context.MODE_PRIVATE);
     }
 
-    static int palette(Context c) {
-        int v = p(c).getInt("palette", 0);
-        return (v < 0 || v >= Style.PALETTES.length) ? 0 : v;
+    static int bgMode(Context c) {
+        int v = p(c).getInt("bg_mode", BG_AUTO);
+        return (v < BG_AUTO || v > BG_BLACK) ? BG_AUTO : v;
     }
 
-    static void setPalette(Context c, int v) {
-        p(c).edit().putInt("palette", v).apply();
+    static void setBgMode(Context c, int v) {
+        p(c).edit().putInt("bg_mode", v).apply();
     }
 
     static boolean night(Context c) {

@@ -27,6 +27,7 @@ import java.util.List;
 /** Écran d'accueil « Verre » (design D). */
 public final class MainActivity extends Activity implements MediaHelper.Listener {
     private static final int REQ_LOCATION = 7;
+    private static final int REQ_PHOTO = 8;
     static final int THEME = android.R.style.Theme_Material_Dialog_Alert;
 
     Stage stage;
@@ -70,12 +71,13 @@ public final class MainActivity extends Activity implements MediaHelper.Listener
         sliders = new SlidersCard(this);
         toggles = new TogglesCard(this);
         dock = new DockCard(this);
-        stage.add(clock, 28, 28, 330, 376);
-        stage.add(media, 376, 28, 558, 376);
-        stage.add(carplay, 952, 28, 300, 376);
-        stage.add(sliders, 28, 422, 906, 136);
-        stage.add(toggles, 952, 422, 300, 136);
-        stage.add(dock, 294.5f, 576, 691, 116);
+        stage.add(media, 24, 24, 608, 536);
+        stage.add(clock, 648, 24, 296, 260);
+        stage.add(carplay, 960, 24, 296, 260);
+        stage.add(sliders, 648, 300, 296, 260);
+        stage.add(toggles, 960, 300, 296, 260);
+        stage.add(dock, 24, 576, 1232, 120);
+        for (View card : new View[]{media, clock, carplay, sliders, toggles, dock}) floatCard(card);
         apps = new AppsPanel(this);
         apps.setVisibility(View.GONE);
         stage.add(apps, 0, 0, 1280, 720);
@@ -197,6 +199,16 @@ public final class MainActivity extends Activity implements MediaHelper.Listener
     void applyStyle() {
         toggles.on[TogglesCard.NIGHT] = Style.night;
         carplay.autoOn = Prefs.autoOpen(this);
+        Backdrop.update(this, mediaHelper == null ? null : mediaHelper.art());
+        redrawAll();
+    }
+
+    /** Le fond suit la pochette en cours : recalculé seulement quand elle change. */
+    private void updateBackdrop() {
+        if (Backdrop.update(this, mediaHelper.art())) redrawAll();
+    }
+
+    private void redrawAll() {
         wall.invalidate();
         clock.invalidate();
         media.invalidate();
@@ -205,6 +217,17 @@ public final class MainActivity extends Activity implements MediaHelper.Listener
         toggles.invalidate();
         dock.invalidate();
         apps.invalidateAll();
+    }
+
+    /** Ombre portée native (GPU) sous chaque widget, comme le verre qui flotte de liquid-glass-js. */
+    private void floatCard(View v) {
+        v.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, android.graphics.Outline o) {
+                o.setRoundRect(0, 0, view.getWidth(), view.getHeight(), 28 * U.s);
+            }
+        });
+        v.setElevation(12 * getResources().getDisplayMetrics().density);
     }
 
     void setHomeVisible(boolean v) {
@@ -223,6 +246,7 @@ public final class MainActivity extends Activity implements MediaHelper.Listener
 
     @Override
     public void onMediaChanged() {
+        updateBackdrop();
         media.invalidate();
     }
 
@@ -427,7 +451,7 @@ public final class MainActivity extends Activity implements MediaHelper.Listener
 
     void showMenu() {
         String[] items = {
-                "Fond d'écran : " + Style.NAMES[Prefs.palette(this)],
+                "Fond d'écran : " + BG_NAMES[Prefs.bgMode(this)],
                 "Configuration de Verre",
                 "Choisir l'appli CarPlay",
                 "Réglages Android",
@@ -436,7 +460,7 @@ public final class MainActivity extends Activity implements MediaHelper.Listener
                 .setTitle("Personnaliser")
                 .setItems(items, (d, w) -> {
                     switch (w) {
-                        case 0: pickPalette(); break;
+                        case 0: pickBackground(); break;
                         case 1: showSetup(); break;
                         case 2: pickRole(Roles.CARPLAY); break;
                         case 3: openSettings(new Intent(Settings.ACTION_SETTINGS)); break;
@@ -446,16 +470,52 @@ public final class MainActivity extends Activity implements MediaHelper.Listener
                 .show();
     }
 
-    private void pickPalette() {
+    private static final String[] BG_NAMES = {"pochette du morceau", "ma photo", "noir"};
+
+    private void pickBackground() {
+        String[] items = {"Pochette du morceau en cours", "Ma photo", "Noir"};
         new AlertDialog.Builder(this, THEME)
                 .setTitle("Fond d'écran")
-                .setSingleChoiceItems(Style.NAMES, Prefs.palette(this), (d, w) -> {
-                    Prefs.setPalette(this, w);
-                    Style.load(this);
-                    applyStyle();
+                .setSingleChoiceItems(items, Prefs.bgMode(this), (d, w) -> {
                     d.dismiss();
+                    if (w == Prefs.BG_PHOTO && !Backdrop.photoFile(this).exists()) {
+                        pickPhoto();
+                        return;
+                    }
+                    Prefs.setBgMode(this, w);
+                    applyStyle();
                 })
+                .setNeutralButton("Choisir une photo…", (d, w) -> pickPhoto())
                 .show();
+    }
+
+    private void pickPhoto() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            startActivityForResult(Intent.createChooser(i, "Choisir une photo"), REQ_PHOTO);
+        } catch (Exception e) {
+            Sys.toast(this, "Aucune galerie trouvée sur cet autoradio");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int code, int result, Intent data) {
+        super.onActivityResult(code, result, data);
+        if (code != REQ_PHOTO || result != RESULT_OK || data == null || data.getData() == null) return;
+        final Uri uri = data.getData();
+        final android.content.Context app = getApplicationContext();
+        new Thread(() -> {
+            boolean ok = Photos.save(app, uri, Backdrop.photoFile(app));
+            h.post(() -> {
+                if (!ok) {
+                    Sys.toast(this, "Impossible de lire cette photo");
+                    return;
+                }
+                Prefs.setBgMode(this, Prefs.BG_PHOTO);
+                Backdrop.forget();
+                applyStyle();
+            });
+        }).start();
     }
 
     void showAppMenu(AppInfo a) {

@@ -5,35 +5,37 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
-/** Boutons ronds : Nuit, Muet, Caméra, Écran off. */
+/** Boutons ronds : Nuit, Muet, Caméra, Veille. */
 final class TogglesCard extends BaseCard {
     static final int NIGHT = 0, MUTE = 1, CAMERA = 2, SCREEN = 3;
-    private static final String[] LABELS = {"Nuit", "Muet", "Caméra", "Écran off"};
-    private static final int[] GLYPHS = {R.drawable.g_moon, R.drawable.g_mute, R.drawable.g_camera, R.drawable.g_screen};
+    private static final String[] LABELS = {"Nuit", "Muet", "Caméra", "Veille"};
+    private static final int[] GLYPHS = {R.drawable.g_moon_fill, R.drawable.g_mute_fill, R.drawable.g_camera, R.drawable.g_screen};
+    private static final float[] CX = {83, 213, 83, 213};
+    private static final float[] CY = {56, 56, 171, 171};
 
     final boolean[] on = new boolean[4];
     private final RectF r = new RectF();
 
     TogglesCard(Context c) {
         super(c);
-        float cw = (300 - 36) / 4f;
-        for (int i = 0; i < 4; i++) {
-            float x = 12 + i * (cw + 4);
-            set(i, x, 14, x + cw, 122, 20);
-        }
-        setContentDescription("Raccourcis : nuit, muet, caméra, écran éteint");
+        for (int i = 0; i < 4; i++) set(i, CX[i] - 62, CY[i] - 44, CX[i] + 62, CY[i] + 66, 22);
+        setContentDescription("Raccourcis : nuit, muet, caméra, veille");
     }
 
     @Override
     protected void draw(Canvas c, float w, float h) {
         r.set(0, 0, w, h);
-        Draw.glass(c, r, 30);
+        glass(c, r, 28);
         for (int i = 0; i < 4; i++) {
-            float cx = hit(i).r.centerX();
-            boolean o = on[i];
-            Draw.circle(c, cx, 56, 29, o ? 0xFFFFFFFF : U.w(0.14f));
-            Glyphs.draw(c, getContext(), GLYPHS[i], cx, 56, 26, o ? 0xFF0B0D17 : 0xFFFFFFFF);
-            Draw.text(c, LABELS[i], cx, 106, 12, Style.MEDIUM, 0xFFFFFFFF, 0, Paint.Align.CENTER);
+            r.set(CX[i] - 34, CY[i] - 34, CX[i] + 34, CY[i] + 34);
+            Glass.floatShadow(c, CX[i], CY[i], 34);
+            if (on[i]) {
+                Draw.circle(c, CX[i], CY[i], 34, i == MUTE ? Style.RED : Style.BLUE);
+            } else {
+                Glass.chip(c, this, r, 34, 0.16f, Style.FILL);
+            }
+            Glyphs.draw(c, getContext(), GLYPHS[i], CX[i], CY[i], 28, Style.INK);
+            Draw.text(c, LABELS[i], CX[i], CY[i] + 57, 15, Style.MEDIUM, Style.INK, 0, Paint.Align.CENTER);
         }
     }
 

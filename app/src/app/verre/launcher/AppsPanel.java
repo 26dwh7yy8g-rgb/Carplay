@@ -32,12 +32,12 @@ final class AppsPanel extends Abs {
         setClickable(true);
 
         header = new HeaderView(h);
-        add(header, 60, 56, 1160, 56);
+        add(header, 56, 52, 1168, 56);
 
         search = new EditText(h);
         search.setBackground(null);
         search.setTextColor(0xFFFFFFFF);
-        search.setHintTextColor(U.w(0.7f));
+        search.setHintTextColor(Style.INK2);
         search.setHint("Rechercher");
         search.setSingleLine(true);
         search.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
@@ -45,14 +45,14 @@ final class AppsPanel extends Abs {
         search.setPadding(0, 0, 0, 0);
         search.setGravity(Gravity.CENTER_VERTICAL);
         search.setTypeface(Style.MEDIUM);
-        add(search, 798, 58, 316, 52);
+        add(search, 56 + HeaderView.PILL_L + 48, 54, HeaderView.PILL_R - HeaderView.PILL_L - 64, 52);
 
         scroll = new ScrollView(h);
         scroll.setVerticalScrollBarEnabled(false);
         scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
         list = new AppsList(h);
         scroll.addView(list, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        add(scroll, 60, 136, 1160, 528);
+        add(scroll, 56, 128, 1168, 548);
 
         search.addTextChangedListener(new TextWatcher() {
             @Override
@@ -83,8 +83,8 @@ final class AppsPanel extends Abs {
     protected void onDraw(Canvas c) {
         c.save();
         c.scale(U.s, U.s);
-        panel.set(28, 28, 1252, 692);
-        Draw.glass(c, panel, 34, 0.09f);
+        panel.set(24, 24, 1256, 696);
+        Glass.panel(c, this, panel, 34, 0.09f);
         c.restore();
     }
 

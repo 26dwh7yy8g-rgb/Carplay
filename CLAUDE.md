@@ -8,10 +8,11 @@ L'utilisateur est francophone, pas développeur, et suit la conversation sur iPh
 - Résolution d'écran **non confirmée** (supposée 1280×720). Photo de « Paramètres → À propos » demandée, pas encore reçue.
 
 ## L'appli « Verre » (ce dépôt)
-- Écran d'accueil Android (launcher) en Java, **sans Gradle** : `./build.sh` → `build/Verre.apk` (~60 Ko). APK à installer : `release/Verre.apk`.
+- Écran d'accueil Android (launcher) en Java, **sans Gradle** : `./build.sh` → `build/Verre.apk` (~130 Ko, version 2.0). APK à installer : `release/Verre.apk`.
 - Lien de téléchargement direct (dépôt public) : `https://github.com/26dwh7yy8g-rgb/Carplay/raw/main/release/Verre.apk`. Le lien est trop long à taper sur l'autoradio : l'utilisateur crée un lien court lui-même sur tinyurl.com (la création de lien court par Claude a été bloquée dans la session), ou passe par une clé USB.
-- Fonctions : horloge + semaine, musique en cours (MediaSession via accès aux notifications, boutons qui marchent même sans), tuile CarPlay + « Ouverture auto » au démarrage (écran allumé), curseurs volume / luminosité (WRITE_SETTINGS), boutons Nuit / Muet / Caméra / Écran off, dock (Radio, Musique, Téléphone, Son, Caméra, Réglages, Applis), écran Applis avec recherche + section **Streaming**, **vidéos bloquées quand le GPS dit que la voiture roule** (> ~7 km/h ; sinon demande de confirmer l'arrêt). Appui long = choisir l'appli de chaque bouton (`Roles.java` devine par mots-clés). Toucher l'horloge = menu Personnaliser.
-- Architecture : tout est dessiné en « unités maquette » 1280×720 mises à l'échelle (`Stage`, `Abs`, `U.s`). Chaque widget = une seule View Canvas (`BaseCard`). Pas de flou calculé en direct (fond = dégradés radiaux) pour rester fluide avec 2 Go de RAM.
+- Fonctions : jour/date/heure, musique en cours (MediaSession via accès aux notifications, boutons qui marchent même sans), tuile CarPlay + « Ouverture auto » au démarrage (écran allumé), curseurs verticaux volume / luminosité (WRITE_SETTINGS), boutons Nuit / Muet / Caméra / Veille, dock (Radio, Musique, Téléphone, Son, Caméra, Réglages, Applis), écran Applis avec recherche + section **Streaming**, **vidéos bloquées quand le GPS dit que la voiture roule** (> ~7 km/h ; sinon demande de confirmer l'arrêt). Appui long = choisir l'appli de chaque bouton (`Roles.java` devine par mots-clés). Toucher l'horloge = menu Personnaliser.
+- Architecture : tout est dessiné en « unités maquette » 1280×720 mises à l'échelle (`Stage`, `Abs`, `U.s`). Chaque widget = une seule View Canvas (`BaseCard`).
+- **Liquid Glass** : `Backdrop` réduit la pochette en cours (ou la photo choisie, `Photos`) à 128×72 et la floute UNE fois par changement ; `Glass` redessine sous chaque panneau la portion de fond qui est derrière (réfraction GPU via `GlassShader`, portage AGSL du shader de dashersw/liquid-glass-js, Android 13+ ; sinon loupe 1,06 + voile + reflet). Fond au choix (pochette / ma photo / noir) ; en noir = widgets pleins façon Apple sombre. Police Inter réduite (assets/fonts), licences dans assets/licenses.
 
 ### Construire dans une session cloud
 - Maven Central renvoie 429 dans l'environnement cloud, donc pas de Gradle. `dl.google.com` est accessible.
@@ -21,7 +22,8 @@ L'utilisateur est francophone, pas développeur, et suit la conversation sur iPh
 
 ## Le design
 - Maquettes (artifact privé de l'utilisateur) : https://claude.ai/artifact/AYSfbHRvLbdGMMdrfNK2fP. Styles A Onyx & Champagne, B Ambiance lumineuse, C Cuir & Cuivre, D Verre dépoli (accueil + écran Applis).
-- L'utilisateur a choisi **D** (style Apple « poussé à fond », pas trop simple, look voiture de luxe), puis trouve que le résultat **fait trop « généré par IA »**. **Prochaine étape : refaire l'écran d'accueil avec le skill design-taste-frontend**, maquette d'abord pour validation, puis code + APK + push sur main.
+- Historique : D (verre dépoli) jugé « trop IA » → maquette « deux cadrans » (skill design-taste-frontend) refusée → **style Apple** (widgets sombres, Inter, couleurs système) validé → **Liquid Glass** demandé et validé (fond = pochette floutée, widgets en verre), refait avec le skill liquid-glass-js (maquette WebGL) puis porté en natif (v2.0).
+- Mise en page actuelle (unités 1280×720, marges 24, écarts 16) : musique (24,24,608×536), heure (648,24,296×260), CarPlay (960,24,296×260), curseurs (648,300,296×260), raccourcis (960,300,296×260), dock (24,576,1232×120).
 - Règles : pas de copie de l'interface Apple ni d'une marque de voiture, pas de logos. Garder toutes les fonctions et la légèreté.
 
 ## Sujets en attente

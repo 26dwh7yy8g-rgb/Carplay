@@ -18,7 +18,7 @@ mkdir -p "$OUT/gen" "$OUT/classes" "$OUT/dex"
 "$BT/aapt2" compile --dir app/res -o "$OUT/res.zip"
 "$BT/aapt2" link -I "$JAR" --manifest app/AndroidManifest.xml \
   --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
-  --java "$OUT/gen" -o "$OUT/base.apk" "$OUT/res.zip"
+  -A app/assets --java "$OUT/gen" -o "$OUT/base.apk" "$OUT/res.zip"
 
 javac -nowarn -encoding UTF-8 --release 11 -classpath "$JAR" -d "$OUT/classes" \
   $(find app/src "$OUT/gen" -name '*.java')

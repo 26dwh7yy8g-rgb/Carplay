@@ -55,6 +55,11 @@ abstract class BaseCard extends View {
         return (MainActivity) getContext();
     }
 
+    /** Panneau de verre (ou widget plein quand il n'y a pas de fond coloré). */
+    protected void glass(Canvas c, RectF r, float rad) {
+        Glass.panel(c, this, r, rad, 0.09f);
+    }
+
     protected Hit hit(int id) {
         for (int i = 0; i < hits.size(); i++) {
             Hit h = hits.get(i);

@@ -14,14 +14,14 @@ import java.util.List;
  */
 final class AppsList extends BaseCard {
     private static final int HINT = 999, STREAM = 1000;
-    private static final float W = 1160f;
+    private static final float W = 1168f, COL = W / 8f;
 
     private final ArrayList<AppInfo> grid = new ArrayList<>();
     private final ArrayList<AppInfo> stream = new ArrayList<>();
     private String query = "";
     private boolean showStream = true, noResults;
     private float streamTitleY, gridTitleY, noResY, contentH = 200;
-    private String gridTitle = "TOUTES LES APPLIS";
+    private String gridTitle = "Toutes les applis";
     private final RectF r = new RectF();
 
     AppsList(Context c) {
@@ -47,8 +47,8 @@ final class AppsList extends BaseCard {
         float y = 0;
         showStream = nq.isEmpty();
         if (showStream) {
-            streamTitleY = 14;
-            y = 18 + 12;
+            streamTitleY = 20;
+            y = 24 + 14;
             float cw = (W - 3 * 16) / 4f;
             if (stream.isEmpty()) {
                 set(HINT, 0, y, W, y + 76, 22);
@@ -62,15 +62,15 @@ final class AppsList extends BaseCard {
                 int rows = (stream.size() + 3) / 4;
                 y += rows * 76 + (rows - 1) * 16;
             }
-            y += 28;
+            y += 32;
         }
-        gridTitle = showStream ? "TOUTES LES APPLIS" : "RÉSULTATS";
-        gridTitleY = y + 14;
-        y += 18 + 14;
+        gridTitle = showStream ? "Toutes les applis" : "Résultats";
+        gridTitleY = y + 20;
+        y += 24 + 16;
         for (int i = 0; i < grid.size(); i++) {
             int col = i % 8, row = i / 8;
-            float x = col * 145f, yy = y + row * (125 + 24);
-            set(i, x, yy, x + 145, yy + 125, 20);
+            float x = col * COL, yy = y + row * (125 + 24);
+            set(i, x, yy, x + COL, yy + 125, 20);
         }
         int rows = (grid.size() + 7) / 8;
         if (rows > 0) y += rows * 125 + (rows - 1) * 24;
@@ -92,43 +92,41 @@ final class AppsList extends BaseCard {
     @Override
     protected void draw(Canvas c, float w, float h) {
         if (showStream) {
-            Draw.text(c, "STREAMING", 0, streamTitleY, 14, Style.MEDIUM, U.w(0.75f), 0.06f, Paint.Align.LEFT);
+            Draw.text(c, "Streaming", 0, streamTitleY, 20, Style.SEMIBOLD, Style.INK, 0, Paint.Align.LEFT);
             if (stream.isEmpty()) {
                 RectF hr = hit(HINT).r;
-                Draw.fill(c, hr, 22, U.w(0.10f));
-                Draw.stroke(c, hr, 22, U.w(0.14f));
-                Draw.text(c, "Aucune appli de streaming installée sur l'autoradio", hr.left + 22, hr.top + 33, 17, Style.MEDIUM, 0xFFFFFFFF, 0, Paint.Align.LEFT);
-                Draw.text(c, "Touchez pour ouvrir le Play Store (Netflix, YouTube, Spotify, Deezer…)", hr.left + 22, hr.top + 56, 13, Style.REGULAR, U.w(0.75f), 0, Paint.Align.LEFT);
+                Glass.chip(c, this, hr, 22, 0.10f, Style.FILL);
+                Draw.text(c, "Aucune appli de streaming installée sur l'autoradio", hr.left + 22, hr.top + 33, 17, Style.SEMIBOLD, Style.INK, 0, Paint.Align.LEFT);
+                Draw.text(c, "Touchez pour ouvrir le Play Store (Netflix, YouTube, Spotify, Deezer…)", hr.left + 22, hr.top + 56, 14, Style.MEDIUM, Style.INK2, 0, Paint.Align.LEFT);
             }
             for (int i = 0; i < stream.size(); i++) {
                 RectF cr = hit(STREAM + i).r;
                 AppInfo a = stream.get(i);
-                Draw.fill(c, cr, 22, U.w(0.10f));
-                Draw.stroke(c, cr, 22, U.w(0.14f));
-                r.set(cr.left + 16, cr.top + 14, cr.left + 64, cr.top + 62);
-                icon(c, a, r, 14);
-                float tw = cr.width() - 78 - 14;
-                Draw.text(c, Draw.fit(a.label, tw, 17, Style.MEDIUM, 0), cr.left + 78, cr.top + 35, 17, Style.MEDIUM, 0xFFFFFFFF, 0, Paint.Align.LEFT);
+                Glass.chip(c, this, cr, 22, 0.10f, Style.FILL);
+                r.set(cr.left + 14, cr.top + 14, cr.left + 62, cr.top + 62);
+                icon(c, a, r, 12);
+                float tw = cr.width() - 76 - 14;
+                Draw.text(c, Draw.fit(a.label, tw, 17, Style.SEMIBOLD, 0), cr.left + 76, cr.top + 35, 17, Style.SEMIBOLD, Style.INK, 0, Paint.Align.LEFT);
                 String sub = a.kind == AppInfo.VIDEO ? "Vidéo · à l'arrêt" : "Audio";
-                Draw.text(c, sub, cr.left + 78, cr.top + 56, 13, Style.REGULAR, U.w(0.75f), 0, Paint.Align.LEFT);
+                Draw.text(c, sub, cr.left + 76, cr.top + 57, 14, Style.MEDIUM, Style.INK2, 0, Paint.Align.LEFT);
             }
         }
-        Draw.text(c, gridTitle, 0, gridTitleY, 14, Style.MEDIUM, U.w(0.75f), 0.06f, Paint.Align.LEFT);
+        Draw.text(c, gridTitle, 0, gridTitleY, 20, Style.SEMIBOLD, Style.INK, 0, Paint.Align.LEFT);
         for (int i = 0; i < grid.size(); i++) {
             RectF cell = hit(i).r;
             AppInfo a = grid.get(i);
-            r.set(cell.left + 24.5f, cell.top, cell.left + 120.5f, cell.top + 96);
-            icon(c, a, r, 26);
-            Draw.text(c, Draw.fit(a.label, 138, 15, Style.MEDIUM, 0), cell.centerX(), cell.top + 121, 15, Style.MEDIUM, 0xFFFFFFFF, 0, Paint.Align.CENTER);
+            r.set(cell.centerX() - 48, cell.top, cell.centerX() + 48, cell.top + 96);
+            icon(c, a, r, 24);
+            Draw.text(c, Draw.fit(a.label, COL - 8, 15, Style.MEDIUM, 0), cell.centerX(), cell.top + 121, 15, Style.MEDIUM, Style.INK, 0, Paint.Align.CENTER);
         }
         if (noResults) {
-            Draw.text(c, "Aucune appli ne correspond à « " + query + " »", 0, noResY, 18, Style.REGULAR, U.w(0.8f), 0, Paint.Align.LEFT);
+            Draw.text(c, "Aucune appli ne correspond à « " + query + " »", 0, noResY, 18, Style.MEDIUM, Style.INK2, 0, Paint.Align.LEFT);
         }
     }
 
     private void icon(Canvas c, AppInfo a, RectF dst, float rad) {
         if (a.icon != null && !a.icon.isRecycled()) Draw.bitmap(c, a.icon, dst);
-        else Draw.fill(c, dst, rad, U.w(0.12f));
+        else Glass.chip(c, this, dst, rad, 0.12f, Style.FILL);
     }
 
     private AppInfo appFor(int id) {
